@@ -1,1 +1,31 @@
+java文档api：
+https://docs.oracle.com/javase/8/docs/api/
+
+Spring-全面详解（学习总结）
+https://blog.csdn.net/weixin_44207403/article/details/106736102?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522166157736216782246472931%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=166157736216782246472931&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-1-106736102-null-null.142^v42^new_blog_pos_by_title,185^v2^control&utm_term=spring&spm=1018.2226.3001.4187
+
+mybatis看这一篇就够了，简单全面一发入魂
+https://blog.csdn.net/vcj1009784814/article/details/106391982?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522166866754316800180668228%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=166866754316800180668228&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-1-106391982-null-null.142^v64^control_1,201^v3^control_1,213^v2^t3_esquery_v2&utm_term=mybatis&spm=1018.2226.3001.4187
+
+Spring MVC详解(学习总结)
+https://blog.csdn.net/qq_52797170/article/details/125591705?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522166763086516782390557398%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=166763086516782390557398&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-4-125591705-null-null.142^v63^control_1,201^v3^control_1,213^v1^control&utm_term=springmvc&spm=1018.2226.3001.4187
+
+Spring ----AOP
+https://zengyihong.blog.csdn.net/article/details/124257850
+
+多线程的线程安全问题
+https://blog.csdn.net/asd747571569/article/details/121797741?ops_request_misc=&request_id=&biz_id=102&utm_term=%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%9A%84%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8&utm_medium=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-5-121797741.142^v42^new_blog_pos_by_title,185^v2^control&spm=1018.2226.3001.4187
+
+Java8 Stream：2万字20个实例，玩转集合的筛选、归约、分组、聚合
+https://blog.csdn.net/mu_wind/article/details/109516995?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522166191115116782248545856%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=166191115116782248545856&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-1-109516995-null-null.142^v42^new_blog_pos_by_title,185^v2^control&utm_term=stream&spm=1018.2226.3001.4187
+
+半个月时间把MySQL重新巩固了一遍，梳理了一篇几万字 “超硬核” 文章！
+https://blog.csdn.net/weixin_45692705/article/details/119003128?spm=1001.2100.3001.7377&utm_medium=distribute.pc_feed_blog_category.none-task-blog-classify_tag-4-119003128-null-null.nonecase&depth_1-utm_source=distribute.pc_feed_blog_category.none-task-blog-classify_tag-4-119003128-null-null.nonecase
+
+Java注解---通俗易懂
+https://zengyihong.blog.csdn.net/article/details/123197180?spm=1001.2014.3001.5502
+
+一篇适合小白的Shiro教程
+https://blog.csdn.net/bbxylqf126com/article/details/110501155?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522166858205216782425130136%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=166858205216782425130136&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-1-110501155-null-null.142^v63^control_1,201^v3^control_1,213^v2^t3_esquery_v2&utm_term=shiro&spm=1018.2226.3001.4187
+
 

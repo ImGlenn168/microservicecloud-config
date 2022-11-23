@@ -1,0 +1,11 @@
+Redis用户管理服务系统
+微服务架构模型：
+DDD分层架构：
+1.	用户接口层：“API层，给外部提供访问的接口
+2.	应用程：APP层，应用服务逻辑实现
+3.	领域层：domain层，聚合（实体，值对象），枚举
+4.	基础层：persistence层，对接数据库、缓存资源
+5.	外部层：external层，对接外部服务
+
+技术:
+后端: SpringCloud+MyBatis +OpenFeign+config+eureka+zuul+redis+MySQL

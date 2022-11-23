@@ -1,0 +1,122 @@
+Redis分页查询的实现过程
+
+1.	需求详解
+1.1	查询所有的实例
+1.1.1	instance表中的实例
+1.1.2	label表中的实例
+1.1.3	node表中的实例
+1.1.4	attribute表中的实例
+实现：
+A. instance表中的实例id是自增的，其他表中有一个cacheInstanceId，关联instance表中的id。
+B. 用户侧使用了status!=deleted and cia.is_deleted=’N’，来过滤出有效数据。
+ci.status!='deleted'           cia.is_deleted='N'
+C. 管理员侧没有使用该sql过滤数据，管理可以获取deleted状态下的数据，以及该数据下的attribute数据和其他数据。
+D. 查出来的结果封装到一个List<CacheInstancePO> cacheInstancePO中。
+public class CacheInstancePO extends CacheInstanceBasePO {
+    private Long id;
+    private String hisOrderId;
+    private String customerId;
+    private String enterpriseId;
+    private String supplierCacheInstanceId;
+    // 控制长度，显示部分属性
+    private List<CacheNodePO> cacheNodePOList;
+    private List<CacheInstanceAttributePO> attributePOList;
+    private List<CacheInstanceLabelPO> cacheLabelList;
+}
+
+E. sql中使用了collection进行封装，需要对封装的结果进行解析。
+<resultMap type="po.CacheInstancePO" id="queryCacheInstanceDetail">// 显示部分路径
+    <result property="id" column="id"/>
+    <result property="customerId" column="customerId"/>
+    // 控制长度，显示部分封装，以下为三个collection
+<collection property="cacheNodePOList" ofType=" po.CacheNodePO"> // 显示部分路径
+        <result property="id" column="nodeId"/>
+        <result property="hisNodeId" column="hisNodeId"/>
+             <result property="lastUpdateBy" column="NodeLastUpdateBy"/>
+        <result property="lastUpdateTime" column="NodeLastUpdateTime"/>
+    </collection>
+<collection property="cacheLabelList" ofType=" po.CacheInstanceLabelPO"> // 显示部分路径
+        <result property="id" column="labelId"/>
+        <result property="lastUpdateTime" column="labelLastUpdateTime"/>
+    </collection>
+<collection property="attributePOList" ofType="po.CacheInstanceAttributePO" > // 显示部分路径
+        <result property="id" column="attributeId"/>
+        <result property="lastUpdateTime" column="attributeLastUpdateTime"/>
+    </collection>
+</resultMap>
+
+F. 把PO中的属性解析成AR，然后从AR解析到DTO，再通过接口返回到客户端。
+// 这个过程就不贴代码了
+
+1.2	对实例进行分页
+1.2.1	前端传入一个pageVo，sql中接收一个pageVo，实现分页
+1.2.2	但是该分页只能对instance表中的内容进行一个count处理，需要根据instance表中的id数量获得一个总条数，sql中对该id使用了distinct去重处理。
+1.2.3	租户侧和管理员侧使用了不同的count逻辑，租户侧不计算状态为deleted的数量，管理员侧计算状态为deleted的数量，这样能保证管理员侧的数据数量的准确性，因为在租户id下的实例状态可能是deleted，租户这边不再显示该实例，管理员则需要显示该实例。
+1.2.4	这里的分页sql有点复杂，一般分页放在sql语句中末尾部分，但是这个sql需要放在中间部分，具体就是对两张表(instance, node)进行查询，对查询的结果进行分页，再把分页的结果作为一张新表，通过id连接label和attribute表查出最终结果。
+(SELECT
+<include refid="cacheInstanceFields"></include>
+<include refid="cacheNodeFields"></include>
+FROM
+cache_instance ci
+left JOIN cache_node cn on ci.id = cn.cache_instance_id
+<include refid="queryParams"></include>
+order by ci.id
+LIMIT #{pageVO.mysqlStartIndex}, #{pageVO.pageSize}) ci
+
+
+1.3	实现模糊查询
+1.3.1	前端传来一个fussySearch的属性，根据该属性对数据库中的ci.cache_instance_name， ci.supplier_cache_instance_id，ci.customer_id，cn.node_address，cn.dns 进行前缀模糊匹配，该方法用到了concat语句。这里的逻辑就是，如果传进来的参数，与数据库中上述提及到的五个字段有任一匹配，那么显示所有匹配到的实例。
+<if test="filterParamsVo.fuzzySearch != null and filterParamsVo.fuzzySearch !=''">
+    AND (ci.cache_instance_name  like concat(#{filterParamsVo.fuzzySearch},"%")
+    or ci.supplier_cache_instance_id like concat(#{filterParamsVo.fuzzySearch},"%")
+    or ci.customer_id like concat(#{filterParamsVo.fuzzySearch},"%")
+    or cn.node_address like concat(#{filterParamsVo.fuzzySearch},"%")
+    or cn.dns like concat(#{filterParamsVo.fuzzySearch},"%"))
+</if>
+
+1.4	实现精准查询
+1.4.1	这里的用到了where exists语句，查询条件在(instance, node)表中。
+1.4.2	Where exists返回的是true 或者 false，如果存在该行，并且能与传进来的值匹配，那就返回true，否则返回false。
+<if test="filterParamsVo.accountCode != null and filterParamsVo.accountCode != ''">
+    and exists ( SELECT 1 FROM cache_instance_attribute cia where cia.KEY = 'account_code'
+    and cia.is_deleted = 'N' and cia.cache_instance_id = ci.id and cia.VALUE = #{filterParamsVo.accountCode})
+</if>  // 拿一个出来作为例子
+
+1.5	日期处理
+1.5.1	需要查一个createdTime，刚开始做的是精准匹配，后来觉得不对，因为页面中都是用户选择的时间区间，根据区间查出该区间的结果。所以就对sql做了个更改，使用了between，也就是 数据库的时间 between 开始时间 and 结束时间。
+1.5.2	注意if的写法，有判断两个参数！
+<if test="filterParamsVo.createdStartTime != null and filterParamsVo.createdStartTime != '' and
+     filterParamsVo.createdEndTime != null and filterParamsVo.createdEndTime != '' ">
+    AND  ci.created_time between #{filterParamsVo.createdStartTime,jdbcType=TIMESTAMP}
+    and #{filterParamsVo.createdEndTime,jdbcType=TIMESTAMP}
+</if>
+
+1.6	regionCodeList处理
+1.6.1 刚开始写的是传入单个regionCode，后来需求变为多个，sql就对传进来的list做了个foreach。
+1.6.2 这里有个细节，传进来的regionCodeList要放在collection中，item放的是regionCode，也就是传入的值。
+<if test="filterParamsVo.regionCodeList != null and filterParamsVo.regionCodeList !=''">
+    and exists ( SELECT 1 FROM cache_instance_attribute cia where cia.KEY = 'region_code'
+    and cia.is_deleted = 'N' and cia.cache_instance_id = ci.id and cia.VALUE in
+    <foreach collection="filterParamsVo.regionCodeList" item="regionCode" open="(" close=")" separator=",">
+        #{regionCode}
+    </foreach>
+    )
+</if>
+
+1.7	对查询出来的 attribute，label， node 表进行解析，
+1.7.1	label 和 node 处理起来还好
+1.7.2	attribute做过一些修改，主要是进行精简。
+1.7.3	Optional不太好用，就弃用了，后期要加强对Optional的理解和学习。
+// 具体实现就不贴代码了
+
+1.8	补充一个点：根据创建时间排序
+1.8.1	因为每新建一个实例，instance表中的id是自增的，所以可以做一个order by ci.id desc 降序排列，新创建的实例的会排在前面。
+1.9	用到的索引
+1.9.1	cache_instance 表： 
+名：idx_cache_instance_customer_id  字段：`customer_id`
+1.9.2  cache_instance_attribute 表：
+      名：idx_cache_instance_attribute_cid  字段：cache_instance_id
+      名：idx_cache_instance_attribute_is_deleted 字段：is_deleted
+      名：idx_cache_instance_attribute_key   字段：key
+1.9.2	cache_node 表：
+名：idx_ci_cache_instance_id  字段：cache_instance_id
